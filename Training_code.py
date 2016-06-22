@@ -7,20 +7,20 @@ Created on Sat May 28 23:05:32 2016
 import pandas as pd
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
-import numpy as np
-import statsmodels.api as sm
-import statsmodels.formula.api as smf
 from sklearn.feature_selection import RFE
 from sklearn.grid_search import GridSearchCV
 from sklearn import preprocessing
 from dateutil.parser import parse
 from sklearn import cross_validation
-from sklearn.feature_selection import SelectKBest
-from sklearn.feature_selection import chi2
 import re
+######
+#Uncomment as you need 
+#from sklearn.ensemble import AdaBoostClassifier
+#from sklearn.tree import DecisionTreeClassifier
+#from sklearn.neighbors import KNeighborsClassifier
+#import numpy as np
+#import statsmodels.api as sm
+#import statsmodels.formula.api as smf
 
 forcolor=preprocessing.LabelEncoder()
 forday=preprocessing.LabelEncoder()
@@ -87,7 +87,6 @@ def mungeData(dataframe,training):
     dataframe['deathold']=dataframe['hour']+dataframe['baby']
     
     if(training):
-        #dataframe['outcome']=preprocessing.LabelEncoder().fit_transform(dataframe['OutcomeType'])
         dataframe['outcome']=dataframe['OutcomeType'].map({'Return_to_owner':3, 'Euthanasia':2, 'Adoption':0, 'Transfer':4, 'Died':1})
     
     return dataframe
@@ -101,7 +100,8 @@ def param_importance(data):
     CV_alg=GridSearchCV(estimator=alg,param_grid=param_grid,cv=5)
     CV_alg.fit(data[predictors],data['outcome'])
     return CV_alg.best_params_
-    
+ 
+#The features chosen after using t-tests from ols algorithm from statsmodels   
 predictors=['AnimalType','weekage','gender','isintact','hasname','baby','hour','weekday']
 #Obtain Dataframe object from csv file
 train_data=pd.read_csv('train.csv')
@@ -109,19 +109,30 @@ test_data=pd.read_csv('test.csv')
 munged_train=mungeData(train_data,1)
 munged_test=mungeData(test_data,0)
 
+#######
+#Choosing parameters for an algorithm
 #print(param_importance(munged_train))
-dt=DecisionTreeClassifier()
+#######
+#Different algorithms to classify
+#dt=DecisionTreeClassifier()
 #alg=RandomForestClassifier(n_estimators=400,max_features='auto')
-#alg=GradientBoostingClassifier(min_samples_leaf=3,n_estimators=400,min_samples_split=3)
+alg=GradientBoostingClassifier(min_samples_leaf=3,n_estimators=400,min_samples_split=3)
 #alg=KNeighborsClassifier(n_neighbors=8)
 #alg=AdaBoostClassifier(n_estimators=400,base_estimator=dt,learning_rate=0.5)
+#######
+#Choosing features
 #results = smf.ols('outcome ~ weekage + isintact +gender + AnimalType+baby+ hasname +isamix+simplebreed+simplecolor+hour+deathold+weekday', data=munged_train).fit()
 #print(results.summary())
+#Another way to choose features
 #rfe=RFE(alg,5)
 #rfe=rfe.fit(munged_train[predictors],munged_train['outcome'])
 #print(rfe.support_)
 #print(rfe.ranking_)
+#######
+#A quick check on the achieved accuracy
 print(cross_validation.cross_val_score(alg,munged_train[predictors],munged_train['outcome'],cv=8))
+#######
+#Producing the prediction values
 #alg.fit(munged_train[predictors],munged_train['outcome'])
 ##
 #predictions=alg.predict_proba(munged_test[predictors])
@@ -132,10 +143,4 @@ print(cross_validation.cross_val_score(alg,munged_train[predictors],munged_train
 #output.index.names=['ID']
 #output.to_csv('predictions.csv')
 
-#data_num=dataframe['OutcomeType'].shape[0]
-#train_predictors=munged_train[predictors]
-#train_target=list(munged_train['OutcomeType'].values)
-#test_predictors=(munged_test[predictors])
-#test_predictions=alg.predict(dataframe[predictors].iloc[int(math.floor(0.95*data_num)):,:])
-#
-#print(test_predictions)
+
