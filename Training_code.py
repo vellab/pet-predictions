@@ -92,10 +92,11 @@ def mungeData(dataframe,training):
     return dataframe
 
 def param_importance(data):
-    alg=RandomForestClassifier()
+    alg=GradientBoostingClassifier()
     param_grid={
-        'n_estimators':[50,400],
-        'max_features':['auto','sqrt','log2']    
+        'min_samples_leaf':[2,7],
+        'min_samples_split':[2,7],
+        'n_estimators':[200,400]  
     }
     CV_alg=GridSearchCV(estimator=alg,param_grid=param_grid,cv=5)
     CV_alg.fit(data[predictors],data['outcome'])
